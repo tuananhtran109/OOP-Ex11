@@ -10,10 +10,12 @@
 \usepackage{array}
 \usepackage{enumitem}
 \usepackage{xcolor}
+\usepackage{microtype}
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
 
-\setlist{nosep, leftmargin=1.2em, topsep=0.5pt, partopsep=0pt}
+\emergencystretch=2em
+\setlist{nosep, leftmargin=1.2em, topsep=1pt, partopsep=0pt}
 
 \hypersetup{
     colorlinks=true,
@@ -26,63 +28,61 @@
 
 \begin{center}
     \vspace*{-0.4cm}
-    {\LARGE \textbf{BÁO CÁO THỰC HÀNH OOP - TUẦN 11}}\\[0.06cm]
+    {\LARGE \textbf{BÁO CÁO THỰC HÀNH OOP - TUẦN 11}}\\[0.05cm]
     {\large \textbf{Chủ đề: Áp Dụng Design Patterns (Adapter - Observer - Mediator)}}\\[0.03cm]
-    {\large \textbf{Hệ Thống Giám Sát An Toàn Phòng Máy (Campus Safety Hub)}}\\[0.12cm]
-    \textbf{MSSV: 202418834 \quad Họ tên: Trần Tuấn Anh}\\[0.05cm]
+    {\large \textbf{Hệ Thống Giám Sát An Toàn Phòng Máy (Campus Safety Hub)}}\\[0.08cm]
+    \textbf{MSSV: 202418834 \quad Họ tên: Trần Tuấn Anh}\\[0.04cm]
     \today
 \end{center}
 
-\vspace{-0.30cm}
+\vspace{-0.35cm}
 
 \section{Link Github - Mã nguồn}
 Kho lưu trữ mã nguồn đầy đủ của bài thực hành trên Github:
 \begin{center}
-    \vspace{-0.15cm}
     \url{https://github.com/tuananhtran109/OOP-Ex11}
-    \vspace{-0.15cm}
+\end{center}
+\vspace{-0.2cm}
+Mọi tệp mã nguồn (\texttt{.cs}) trong dự án đều bắt đầu bằng header nhận diện tác giả theo đúng quy định:
+\begin{center}
+\vspace{-0.15cm}
+\fbox{\small\texttt{/****************/ \ // MSSV:202418834 \ // Họ tên: Trần Tuấn Anh \ /****************/}}
 \end{center}
 
-\vspace{-0.25cm}
+\vspace{-0.35cm}
 
 \section{Phân tích bài toán và Kiến trúc Campus Safety Hub}
 
 \subsection{Bối cảnh bài toán và Yêu cầu nghiệp vụ}
-Hệ thống \textbf{Campus Safety Hub} là chương trình mô phỏng trung tâm giám sát an toàn chuyên dụng cho một phòng máy chủ / trung tâm dữ liệu khuôn viên trường đại học. Hệ thống giải quyết 3 thách thức kỹ thuật cốt lõi:
-\begin{itemize}[itemsep=0.5pt]
-    \item \textbf{Tương thích phần cứng cũ (Legacy Integration):} Cảm biến khói hiện có trong phòng máy là thế hệ cũ (\texttt{LegacySmokeDetector}), giao diện không tương thích với chuẩn hệ thống mới (\texttt{ISensor}) và sử dụng thang đo số nguyên thô $0 \dots 1000$ thay vì thang phần trăm $0 \dots 100\%$. Mã nguồn thiết bị cũ giả định không được phép chỉnh sửa.
-    \item \textbf{Giám sát và Phân phối cảnh báo linh hoạt (Dynamic Alert Distribution):} Cần truyền phát các sự kiện cảnh báo vượt ngưỡng an toàn tới nhiều bên nhận độc lập: bảng điều khiển trung tâm (\texttt{Dashboard}), hệ thống gửi email khẩn cấp (\texttt{EmailAlert}), nhật ký an ninh phục vụ hậu kiểm (\texttt{AuditLog}), và cầu nối sang hệ thống phản ứng khẩn cấp (\texttt{EmergencyBridge}). Các bên nhận có thể đăng ký hoặc hủy đăng ký linh hoạt tại runtime mà không ảnh hưởng tới bộ giám sát.
-    \item \textbf{Điều phối ứng phó khẩn cấp tập trung (Centralized Emergency Coordination):} Khi phát sinh sự cố nguy cấp (\texttt{CRITICAL}), hệ thống phải phối hợp đồng thời nhiều thiết bị ngoại vi: hú còi báo động (\texttt{Alarm}), mở khóa toàn bộ cửa thoát hiểm (\texttt{DoorController}), và cách ly quạt thông gió chuyển sang hút khói (\texttt{VentilationController}). Các thiết bị này tuyệt đối không được gọi chéo phụ thuộc trực tiếp vào nhau.
+Hệ thống \textbf{Campus Safety Hub} giải quyết bài toán giám sát an toàn cho phòng máy chủ / trung tâm dữ liệu tại khuôn viên học đường, tích hợp giữa thiết bị cảm biến phần cứng thế hệ cũ và các cơ chế ứng phó khẩn cấp hiện đại:
+\begin{itemize}[itemsep=1.0pt]
+    \item \textbf{Tích hợp phần cứng cũ:} Cảm biến khói cũ (\texttt{LegacySmokeDetector}) có sẵn thang đo thô $0 \dots 1000$ với giao diện riêng biệt, không được sửa đổi mã nguồn phần cứng cũ. Hệ thống mới yêu cầu chuẩn hóa thang đo về phần trăm ($0 \dots 100\%$) với đơn vị \texttt{"\% smoke"}.
+    \item \textbf{Giám sát đa kênh:} Bộ giám sát trung tâm (\texttt{SensorMonitor}) định kỳ quét các cảm biến, phân loại mức độ rủi ro và thông báo tức thời tới nhiều đối tượng tiếp nhận (Bảng điều khiển \texttt{DashboardObserver}, Thông báo thư điện tử \texttt{EmailAlertObserver}, Nhật ký bảo mật \texttt{AuditLogObserver}) mà không bị ràng buộc cứng (tight coupling).
+    \item \textbf{Phản ứng khẩn cấp tự động:} Khi phát hiện nguy cơ cháy ở mức \textbf{CRITICAL} ($\ge 70\%$), hệ thống phải lập tức kích hoạt quy trình ứng phó khẩn cấp: hú còi báo động (\texttt{Alarm}), mở khóa toàn bộ cửa an toàn (\texttt{DoorController}) và cách ly hệ thống thông gió (\texttt{VentilationController}) một cách đồng bộ và an toàn.
 \end{itemize}
 
-\vspace{-0.15cm}
-
 \subsection{Quy ước phân loại ngưỡng an toàn (Safety Thresholds)}
-Bộ giám sát trung tâm (\texttt{SensorMonitor}) đọc dữ liệu cảm biến sau khi chuẩn hóa và phân loại mức độ nguy hiểm theo quy tắc:
+Hệ thống chuẩn hóa 3 mức độ nghiêm trọng dựa trên giá trị nồng độ khói đã quy đổi ($0 \dots 100\%$):
 \begin{table}[H]
 \centering
 \footnotesize
-\vspace{-0.2cm}
-\renewcommand{\arraystretch}{1.05}
-\begin{tabular}{cp{4.2cm}p{8.8cm}}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{p{3.2cm}p{2.8cm}p{5.0cm}p{4.2cm}}
 \toprule
-\textbf{Giá trị khói (\%)} & \textbf{Mức độ nghiêm trọng} & \textbf{Hành vi hệ thống tương ứng} \\
+\textbf{Mức độ (Severity)} & \textbf{Dải giá trị khói} & \textbf{Hành vi hệ thống} & \textbf{Phản ứng điều phối} \\
 \midrule
-Dưới $50.0\%$ & \textbf{Bình thường (NORMAL)} & Môi trường an toàn; không phát tán sự kiện cảnh báo. \\
-Từ $50.0\%$ đến $< 70.0\%$ & \textbf{CẢNH BÁO (WARNING)} & Tạo \texttt{AlertEvent}; thông báo Dashboard, gửi Email, ghi Audit Log; chưa kích hoạt quy trình phản ứng khẩn cấp. \\
-Từ $70.0\%$ trở lên & \textbf{NGUY CẤP (CRITICAL)} & Tạo \texttt{AlertEvent}; thông báo toàn bộ Observer; cầu nối Bridge kích hoạt ngay sự kiện \texttt{FIRE\_DETECTED} tới Mediator để điều phối khẩn cấp toàn diện thiết bị. \\
+\textbf{Bình thường (Normal)} & Giá trị $< 50\%$ & An toàn, không phát cảnh báo & Vận hành bình thường \\
+\textbf{Cảnh báo (WARNING)} & $50\% \le \text{Giá trị} < 70\%$ & Phát tán sự kiện \texttt{AlertEvent} & Hiển thị Dashboard, gửi Email \\
+\textbf{Nguy cấp (CRITICAL)} & Giá trị $\ge 70\%$ & Phát tán sự kiện \texttt{AlertEvent} & Hú còi, mở cửa, ngắt thông gió \\
 \bottomrule
 \end{tabular}
-\vspace{-0.25cm}
 \end{table}
 
-\vspace{-0.20cm}
-
 \subsection{Vai trò kiến trúc của 3 Mẫu thiết kế (Design Patterns)}
-\begin{itemize}[itemsep=0.8pt]
-    \item \textbf{Adapter Pattern (\texttt{SmokeSensorAdapter}):} Chuyển đổi giao diện và thang đo từ \texttt{LegacySmokeDetector} sang giao diện chuẩn \texttt{ISensor}. Đóng vai trò lớp bao bọc (Wrapper), giải quyết xung đột chuẩn giao tiếp mà không sửa đổi mã nguồn cũ.
-    \item \textbf{Observer Pattern (\texttt{SensorMonitor}, \texttt{IAlertObserver}):} Thiết lập mối quan hệ một-nhiều (One-to-Many). Khi \texttt{SensorMonitor} phát hiện giá trị vượt ngưỡng, nó tự động gửi đối tượng sự kiện bất biến \texttt{AlertEvent} tới toàn bộ các Observer đã đăng ký mà không cần biết định danh lớp cụ thể của chúng.
-    \item \textbf{Mediator Pattern (\texttt{EmergencyMediator}):} Đóng vai trò trọng tài trung tâm điều phối hoạt động giữa \texttt{Alarm}, \texttt{DoorController} và \texttt{VentilationController}. Biến quan hệ giao tiếp nhiều-nhiều phức tạp thành giao tiếp một-nhiều có trật tự, giúp các thiết bị hoàn toàn lỏng lẻo (loose coupling).
+\begin{itemize}[itemsep=1.0pt]
+    \item \textbf{Adapter Pattern (Object Adapter):} Đóng gói đối tượng thiết bị cũ \texttt{LegacySmokeDetector} vào lớp \texttt{SmokeSensorAdapter} để hiện thực giao diện chuẩn \texttt{ISensor}, quy đổi thang đo thô $0 \dots 1000$ sang tỷ lệ phần trăm $0 \dots 100\%$.
+    \item \textbf{Observer Pattern:} \texttt{SensorMonitor} đóng vai trò \textbf{Subject}, duy trì danh sách \texttt{IAlertObserver}. Khi cảm biến vượt ngưỡng ($\ge 50\%$), nó tự động phát tán sự kiện \texttt{AlertEvent} bất biến tới tất cả Observer đã đăng ký.
+    \item \textbf{Mediator Pattern:} \texttt{EmergencyMediator} đóng vai trò trung gian điều phối tập trung, kết nối 3 thiết bị (\texttt{Alarm}, \texttt{DoorController}, \texttt{VentilationController}). Cầu nối \texttt{EmergencyBridgeObserver} bắt sự kiện mức \texttt{CRITICAL} để kích hoạt quy trình phản ứng khẩn cấp qua Mediator.
 \end{itemize}
 
 \newpage
@@ -94,186 +94,197 @@ Từ $70.0\%$ trở lên & \textbf{NGUY CẤP (CRITICAL)} & Tạo \texttt{AlertE
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    scale=0.74, transform shape,
-    interfacebox/.style={draw=black!80, fill=yellow!12, thick, rounded corners=2pt, font=\scriptsize, align=left, inner sep=4pt, text width=4.6cm},
-    concretebox/.style={draw=black!80, fill=blue!5, thick, rounded corners=2pt, font=\scriptsize, align=left, inner sep=4pt, text width=4.6cm},
-    patternbox/.style={draw=black!80, fill=green!7, thick, rounded corners=2pt, font=\scriptsize, align=left, inner sep=4pt, text width=5.0cm},
-    recordbox/.style={draw=black!80, fill=orange!8, thick, rounded corners=2pt, font=\scriptsize, align=left, inner sep=4pt, text width=4.6cm},
-    smalldevbox/.style={draw=black!80, fill=blue!5, thick, rounded corners=2pt, font=\scriptsize, align=left, inner sep=3pt, text width=3.5cm},
-    inher/.style={-{Triangle[open, fill=white, length=2.8mm, width=2.2mm]}, thick, dashed},
-    assoc/.style={-{Stealth[length=2.4mm]}, thick},
-    dep/.style={-{Stealth[length=2.4mm]}, dashed, thick}
+    scale=0.66, transform shape,
+    interfacebox/.style={draw=blue!70!black, fill=yellow!12, thick, rounded corners=3pt, font=\scriptsize, align=left, inner sep=6pt, text width=4.8cm},
+    concretebox/.style={draw=black!75, fill=blue!5, thick, rounded corners=3pt, font=\scriptsize, align=left, inner sep=6pt, text width=4.8cm},
+    subjectbox/.style={draw=teal!80!black, fill=teal!7, thick, rounded corners=3pt, font=\scriptsize, align=left, inner sep=6pt, text width=5.2cm},
+    patternbox/.style={draw=green!60!black, fill=green!8, thick, rounded corners=3pt, font=\scriptsize, align=left, inner sep=6pt, text width=5.2cm},
+    recordbox/.style={draw=orange!80!black, fill=orange!8, thick, rounded corners=3pt, font=\scriptsize, align=left, inner sep=6pt, text width=4.8cm},
+    devicebox/.style={draw=gray!80!black, fill=gray!8, thick, rounded corners=3pt, font=\scriptsize, align=left, inner sep=6pt, text width=4.0cm},
+    inher/.style={-{Triangle[open, fill=white, length=2.6mm, width=2.0mm]}, thick, dashed},
+    assoc/.style={-{Stealth[length=2.2mm]}, thick},
+    dep/.style={-{Stealth[length=2.2mm]}, dashed, thick}
 ]
 
-% ==================== DÒNG TIÊU ĐỀ: RECORD DỮ LIỆU (y = 12.0) ====================
-\node[recordbox] (alertevent) at (2.8, 12.0) {
-    \centering \textbf{«immutable record»\\[1pt] AlertEvent}\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
+% ==================== DÒNG ĐỈNH: RECORD DỮ LIỆU (y = 14.5) ====================
+\node[recordbox] (alertevent) at (0.0, 14.5) {
+    \centering \textbf{«immutable record»\\[1pt] AlertEvent}\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
     + SensorName: string\\
     + Value: double \quad + Unit: string\\
     + Severity: string \quad + OccurredAt: DateTime
 };
 
-% ==================== TẦNG 1: CÁC ABSTRACTION CỐT LÕI (y = 9.0) ====================
-\node[interfacebox] (isensor) at (-5.8, 9.0) {
-    \centering \textbf{«interface»\\[1pt] ISensor}\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
+% ==================== HÀNG 1: TRỤ CỘT CHÍNH (y = 10.0) ====================
+\node[interfacebox] (isensor) at (-6.2, 10.0) {
+    \centering \textbf{«interface»\\[1pt] ISensor}\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
     + ReadValue(): double\\
     + GetUnit(): string
 };
 
-\node[patternbox] (monitor) at (0.0, 9.0) {
+\node[subjectbox] (monitor) at (0.0, 10.0) {
     \centering \textbf{«subject»\\[1pt] SensorMonitor}\\[1pt]
-    \textit{\tiny (Observer Pattern - Subject)}\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
-    - observers: List\textless IAlertObserver\textgreater\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
+    \textit{\tiny (Observer Pattern - Subject)}\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
+    - observers: List\textless IAlertObserver\textgreater\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
     + Attach(obs: IAlertObserver): void\\
     + Detach(obs: IAlertObserver): void\\
     + CheckSensor(name, sensor): void\\
     - Notify(evt: AlertEvent): void
 };
 
-\node[interfacebox] (iobs) at (5.8, 9.0) {
-    \centering \textbf{«interface»\\[1pt] IAlertObserver}\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
+\node[interfacebox] (iobs) at (6.2, 10.0) {
+    \centering \textbf{«interface»\\[1pt] IAlertObserver}\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
     + Update(evt: AlertEvent): void
 };
 
-% ==================== TẦNG 2: ADAPTER & BRIDGE & CONCRETE OBSERVERS (y = 5.2) ====================
-\node[patternbox] (adapter) at (-5.8, 5.2) {
+% ==================== HÀNG 2: ADAPTER & OBSERVERS (y = 5.0) ====================
+\node[patternbox] (adapter) at (-6.2, 5.0) {
     \centering \textbf{«adapter»\\[1pt] SmokeSensorAdapter}\\[1pt]
-    \textit{\tiny (Adapter Pattern - Object Adapter)}\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
-    - legacy: LegacySmokeDetector\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
+    \textit{\tiny (Adapter Pattern - Object Adapter)}\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
+    - legacy: LegacySmokeDetector\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
     + SmokeSensorAdapter(legacy)\\
     + ReadValue(): double\\
     + GetUnit(): string
 };
 
-\node[patternbox] (bridgeobs) at (0.0, 5.2) {
+\node[patternbox] (bridgeobs) at (0.0, 5.0) {
     \centering \textbf{«observer / bridge»\\[1pt] EmergencyBridgeObserver}\\[1pt]
-    \textit{\tiny (Bridge to EmergencyMediator)}\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
-    - mediator: IEmergencyMediator\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
+    \textit{\tiny (Bridge to EmergencyMediator)}\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
+    - mediator: IEmergencyMediator\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
     + EmergencyBridgeObserver(med)\\
     + Update(evt: AlertEvent): void
 };
 
-\node[concretebox] (dashobs) at (5.8, 6.2) {
-    \centering \textbf{DashboardObserver}\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
+\node[concretebox] (dashobs) at (6.2, 5.0) {
+    \centering \textbf{DashboardObserver}\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
     + DisplayCount: int\\
-    + LastAlert: AlertEvent\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
+    + LastAlert: AlertEvent\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
     + Update(evt: AlertEvent): void
 };
 
-\node[concretebox] (emailobs) at (5.8, 3.6) {
-    \centering \textbf{EmailAlertObserver}\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
-    + EmailsSentCount: int\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
-    + EmailAlertObserver(email: string)\\
-    + Update(evt: AlertEvent): void
-};
-
-% ==================== TẦNG 3: ADAPTEE & MEDIATOR & AUDIT LOG (y = 1.0) ====================
-\node[concretebox] (legacy) at (-5.8, 1.0) {
-    \centering \textbf{«adaptee»\\[1pt] LegacySmokeDetector}\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
-    - smokeLevel: int\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
+% ==================== HÀNG 3: ADAPTEE & EMAIL OBSERVER (y = 0.0) ====================
+\node[concretebox] (legacy) at (-6.2, 0.0) {
+    \centering \textbf{«adaptee»\\[1pt] LegacySmokeDetector}\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
+    - smokeLevel: int\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
     + LegacySmokeDetector(smoke: int)\\
     + GetSmokeLevel(): int\\
     + SetSmokeLevel(val: int): void\\
     + GetDescription(): string
 };
 
-\node[patternbox] (mediator) at (0.0, 1.0) {
-    \centering \textbf{«mediator»\\[1pt] EmergencyMediator}\\[1pt]
-    \textit{\tiny (Mediator Pattern)}\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
-    - alarm: IAlarm\\
-    - doorController: IDoorController\\
-    - ventilationController: IVentilationController\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
-    + TriggerEmergency(type, evt): void\\
-    + ResetNormal(): void
-};
-
-\node[concretebox] (auditobs) at (5.8, 1.0) {
-    \centering \textbf{AuditLogObserver}\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
-    + AuditHistory: IReadOnlyList\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
+\node[concretebox] (emailobs) at (6.2, 0.5) {
+    \centering \textbf{EmailAlertObserver}\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
+    + EmailsSentCount: int\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
+    + EmailAlertObserver(email: string)\\
     + Update(evt: AlertEvent): void
 };
 
-% ==================== TẦNG 4: MEDIATOR INTERFACE & DEVICES (y = -3.0) ====================
-\node[interfacebox] (imediator) at (-5.8, -3.0) {
-    \centering \textbf{«interface»\\[1pt] IEmergencyMediator}\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
+% ==================== HÀNG 4: MEDIATOR & AUDIT LOG (y = -4.8) ====================
+\node[interfacebox] (imediator) at (-6.2, -4.8) {
+    \centering \textbf{«interface»\\[1pt] IEmergencyMediator}\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
     + TriggerEmergency(type, evt): void\\
     + ResetNormal(): void
 };
 
-\node[smalldevbox] (alarm) at (-1.9, -3.0) {
-    \centering \textbf{Alarm}\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
-    + IsSounding: bool\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
+\node[patternbox] (mediator) at (0.0, -4.8) {
+    \centering \textbf{«mediator»\\[1pt] EmergencyMediator}\\[1pt]
+    \textit{\tiny (Mediator Pattern)}\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
+    - alarm: IAlarm\\
+    - doorController: IDoorController\\
+    - ventilationController: IVentilationController\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
+    + TriggerEmergency(type, evt): void\\
+    + ResetNormal(): void
+};
+
+\node[concretebox] (auditobs) at (6.2, -4.0) {
+    \centering \textbf{AuditLogObserver}\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
+    + AuditHistory: IReadOnlyList\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
+    + Update(evt: AlertEvent): void
+};
+
+% ==================== HÀNG 5: CÁC THIẾT BỊ NGOẠI VI (y = -9.6) ====================
+\node[devicebox] (alarm) at (-5.4, -9.6) {
+    \centering \textbf{Alarm}\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
+    + IsSounding: bool\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
     + SoundAlarm(reason): void\\
     + Silence(): void
 };
 
-\node[smalldevbox] (door) at (1.9, -3.0) {
-    \centering \textbf{DoorController}\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
-    + AreDoorsUnlocked: bool\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
+\node[devicebox] (door) at (0.0, -9.6) {
+    \centering \textbf{DoorController}\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
+    + AreDoorsUnlocked: bool\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
     + UnlockAllDoors(): void\\
     + LockAllDoors(): void
 };
 
-\node[smalldevbox] (vent) at (5.8, -3.0) {
-    \centering \textbf{VentilationController}\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
-    + IsIsolated: bool\\[2pt]
-    \rule{\linewidth}{0.3pt}\\[2pt]
+\node[devicebox] (vent) at (5.4, -9.6) {
+    \centering \textbf{VentilationController}\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
+    + IsIsolated: bool\\[3pt]
+    \rule{\linewidth}{0.4pt}\\[3pt]
     + IsolateVentilation(): void\\
     + ResumeNormal(): void
 };
 
-% ==================== CÁC MŨI TÊN QUAN HỆ (HOÀN TOÀN TÁCH BẠCH, ZERO GIAO CẮT) ====================
-% 1. Adapter Pattern (Cột 1)
-\draw[inher] (adapter.north) -- (isensor.south) node[midway, left, font=\tiny] {«implements»};
-\draw[assoc] (adapter.south) -- (legacy.north) node[midway, left, font=\tiny] {«wraps»};
-
-% 2. Observer Subject & Data (Tầng 1)
+% ==================== CÁC ĐƯỜNG KẾT NỐI (ZERO GIAO CẮT, ZERO CHỒNG LẤN) ====================
+% 1. SensorMonitor & Dữ liệu
+\draw[dep] (monitor.north) -- (alertevent.south) node[midway, right, font=\tiny] {«creates»};
 \draw[dep] (monitor.west) -- (isensor.east) node[midway, above, font=\tiny] {«reads»};
-\draw[dep] (monitor.north) |- (alertevent.west) node[pos=0.75, above, font=\tiny] {«creates»};
 \draw[assoc] (monitor.east) -- (iobs.west) node[midway, above, font=\tiny] {«notifies»};
 
-% 3. Observers Realization (Cột 3)
+% 2. Adapter Pattern (Cột 1)
+\draw[inher] (adapter.north) -- (isensor.south) node[midway, right, font=\tiny] {«implements»};
+\draw[assoc] (adapter.south) -- (legacy.north) node[midway, right, font=\tiny] {«wraps»};
+
+% 3. Cụm Observers thực thi IAlertObserver (Cột 3)
+% DashboardObserver: thẳng lên iobs
 \draw[inher] (dashobs.north) -- (iobs.south);
-\draw[inher] (emailobs.north) -- (dashobs.south);
-\draw[inher] (auditobs.north) -- (emailobs.south);
 
-% 4. Bridge to Mediator (Cột 2)
-\draw[inher] (bridgeobs.east) -- ++(0.6, 0) |- (iobs.south);
+% EmailAlertObserver: rẽ nhánh phải
+\draw[inher] (emailobs.east) -- ++(0.6, 0) |- (iobs.east);
+
+% AuditLogObserver: rẽ nhánh phải xa hơn
+\draw[inher] (auditobs.east) -- ++(1.1, 0) |- (iobs.east);
+
+% 4. EmergencyBridgeObserver thực thi IAlertObserver
+\draw[inher] (bridgeobs.north) -- ++(0, 1.2) -| (iobs.south);
+
+% 5. Cầu nối kích hoạt EmergencyMediator khi có CRITICAL
 \draw[assoc] (bridgeobs.south) -- (mediator.north)
-    node[midway, right, font=\tiny] {«triggers on CRITICAL (FIRE\_DETECTED)»};
+    node[midway, right, font=\tiny, align=left] {«triggers on CRITICAL»\\(FIRE\_DETECTED)};
 
-% 5. Mediator implements IEmergencyMediator
-\draw[inher] (mediator.south) -- ++(0, -0.6) -| (imediator.north);
+% 6. EmergencyMediator thực thi IEmergencyMediator
+\draw[inher] (mediator.west) -- (imediator.east)
+    node[midway, above, font=\tiny] {«implements»};
 
-% 6. Mediator controls devices
-\draw[assoc] (mediator.south) -- ++(0, -0.6) -| (alarm.north) node[pos=0.25, left, font=\tiny] {«controls»};
-\draw[assoc] (mediator.south) -- ++(0, -0.6) -| (door.north);
-\draw[assoc] (mediator.south) -- ++(0, -0.6) -| (vent.north);
+% 7. EmergencyMediator điều phối 3 thiết bị ngoại vi
+\draw[thick] (mediator.south) -- ++(0, -1.0) coordinate (devbus);
+\draw[assoc] (devbus) -| (alarm.north) node[pos=0.25, above, font=\tiny] {«controls»};
+\draw[assoc] (devbus) -- (door.north);
+\draw[assoc] (devbus) -| (vent.north);
 
 \end{tikzpicture}
 \caption{Sơ đồ lớp UML hoàn chỉnh hệ thống Campus Safety Hub tích hợp 3 mẫu thiết kế}
@@ -288,7 +299,7 @@ Từ $70.0\%$ trở lên & \textbf{NGUY CẤP (CRITICAL)} & Tạo \texttt{AlertE
 \centering
 \footnotesize
 \renewcommand{\arraystretch}{1.12}
-\begin{tabular}{>{\raggedright\arraybackslash}p{4.2cm}p{2.8cm}p{8.0cm}}
+\begin{tabular}{>{\raggedright\arraybackslash}p{4.8cm}p{2.5cm}p{7.7cm}}
 \toprule
 \textbf{Tên Lớp / Giao diện} & \textbf{Phân loại} & \textbf{Vai trò và trách nhiệm trong kiến trúc} \\
 \midrule
@@ -320,8 +331,8 @@ Từ $70.0\%$ trở lên & \textbf{NGUY CẤP (CRITICAL)} & Tạo \texttt{AlertE
 
 \subsection{1. Mẫu thiết kế Adapter và Quyết định Thiết kế}
 
-\subsubsection{Trả lời Câu hỏi 1: Adapter nên kế thừa (Inheritance) hay chứa (Composition) \texttt{LegacySmokeDetector}?}
-Trong kỹ nghệ phần mềm có hai phương án tiếp cận Adapter:
+\subsubsection{Câu hỏi 1: Adapter nên Kế thừa hay Bố cục (Composition)?}
+Trong kỹ nghệ phần mềm, đối với câu hỏi Adapter nên kế thừa (Inheritance) hay chứa (Composition) thiết bị cũ \texttt{LegacySmokeDetector}, có hai phương án tiếp cận:
 \begin{enumerate}
     \item \textbf{Class Adapter (Sử dụng Kế thừa - Inheritance):} \texttt{SmokeSensorAdapter} kế thừa trực tiếp từ \texttt{LegacySmokeDetector} và đồng thời triển khai \texttt{ISensor}.
     \item \textbf{Object Adapter (Sử dụng Bố cục/Ủy quyền - Composition):} \texttt{SmokeSensorAdapter} chứa một trường tham chiếu \texttt{private readonly LegacySmokeDetector legacy} bên trong và triển khai \texttt{ISensor}.
@@ -333,7 +344,7 @@ Trong kỹ nghệ phần mềm có hai phương án tiếp cận Adapter:
     \item \textbf{Nguyên lý "Favor Object Composition over Class Inheritance":}
     \begin{itemize}
         \item Nếu dùng kế thừa, Adapter sẽ bị gắn chặt (tight coupling) vào cấu trúc nội bộ của lớp cha. Mọi phương thức công khai của \texttt{LegacySmokeDetector} (như \texttt{SetSmokeLevel}) sẽ bị lộ ra ngoài giao diện của Adapter, vi phạm nguyên lý \textit{Interface Segregation Principle (ISP)} và làm ô nhiễm giao diện chuẩn \texttt{ISensor}.
-        \item Khi dùng Composition, \texttt{SmokeSensorAdapter} chỉ công khai đúng 2 phương thức của \texttt{ISensor} (\texttt{ReadValue} và \texttt{GetUnit}). Mọi chi tiết của lớp cũ được che giấu triệt để bên trong (đóng gói hoàn hảo).
+        \item Khi dùng Composition, lớp \texttt{SmokeSensorAdapter} chỉ công khai đúng 2 phương thức của \texttt{ISensor} (\texttt{ReadValue} và \texttt{GetUnit}). Chi tiết kỹ thuật của thiết bị cũ được che giấu triệt để bên trong (đóng gói hoàn hảo).
     \end{itemize}
     \item \textbf{Tính đa hình runtime (Polymorphism):} Object Adapter cho phép truyền bất kỳ thể hiện nào của lớp cũ qua Constructor tại thời điểm chạy (runtime). Khi hệ thống sau này có thêm các cảm biến cũ phiên bản khác, ta chỉ cần tái sử dụng hoặc mở rộng mà không làm vỡ cấu trúc phân cấp lớp.
 \end{itemize}
@@ -346,14 +357,16 @@ $\Rightarrow$ \textbf{Kết luận:} Sử dụng \textbf{Object Adapter} (Compos
 
 \subsection{2. Mẫu thiết kế Observer và Cơ chế Trừu tượng hóa}
 
-\subsubsection{Trả lời Câu hỏi 2: \texttt{SensorMonitor} có nên biết \texttt{EmailAlertObserver} cụ thể không?}
+\subsubsection{Câu hỏi 2: Mối quan hệ giữa SensorMonitor và các Observer cụ thể}
+Trả lời câu hỏi: \texttt{SensorMonitor} có nên biết và phụ thuộc trực tiếp vào các Observer cụ thể như \texttt{EmailAlertObserver} hay không?
+
 \paragraph{Phân tích Trade-off chi tiết:}
 \begin{itemize}[itemsep=1.5pt]
     \item \textbf{Nếu \texttt{SensorMonitor} biết cụ thể \texttt{EmailAlertObserver}:}
     \begin{itemize}
         \item Hệ thống sẽ rơi vào trạng thái \textbf{ghép nối chặt (Tight Coupling)}. \texttt{SensorMonitor} sẽ phải duy trì các trường riêng lẻ: \texttt{emailObserver}, \texttt{dashboardObserver}, \texttt{smsObserver}, \dots
         \item \textbf{Vi phạm nghiêm trọng nguyên lý Open/Closed Principle (OCP):} Mỗi khi cần bổ sung một kênh thông báo mới (ví dụ: Telegram, CloudLogger), kỹ sư bắt buộc phải mở mã nguồn \texttt{SensorMonitor} ra để sửa đổi và biên dịch lại.
-        \item \textbf{Phá vỡ khả năng Unit Test (Testability):} Không thể viết kiểm thử đơn vị độc lập cho \texttt{SensorMonitor} vì không thể đưa các Mock / Stub Observer vào để kiểm tra hành vi.
+        \item \textbf{Phá vỡ khả năng Unit Test:} Không thể viết kiểm thử đơn vị độc lập cho lớp \texttt{SensorMonitor} vì không thể đưa các Mock / Stub Observer vào để kiểm chứng hành vi.
     \end{itemize}
     \item \textbf{Khi \texttt{SensorMonitor} chỉ phụ thuộc vào abstraction \texttt{IAlertObserver}:}
     \begin{itemize}
@@ -363,7 +376,9 @@ $\Rightarrow$ \textbf{Kết luận:} Sử dụng \textbf{Object Adapter} (Compos
 \end{itemize}
 $\Rightarrow$ \textbf{Kết luận:} \texttt{SensorMonitor} \textbf{tuyệt đối KHÔNG ĐƯỢC} biết các lớp cụ thể, mà chỉ giao tiếp thông qua hợp đồng trừu tượng \texttt{IAlertObserver}.
 
-\subsubsection{Trả lời Câu hỏi 4: Ai chịu trách nhiệm quyết định giá trị nào là vượt ngưỡng?}
+\subsubsection{Câu hỏi 4: Trách nhiệm phân loại ngưỡng cảnh báo an toàn}
+Trả lời câu hỏi: Thành phần nào (Sensor, SensorMonitor hay Observer) chịu trách nhiệm đánh giá và quyết định giá trị đo là vượt ngưỡng?
+
 \paragraph{Phân tích Trade-off chi tiết:}
 \begin{itemize}[itemsep=1.5pt]
     \item \textbf{Phương án 1 - Để tại Cảm biến (\texttt{ISensor}):} Cảm biến chỉ có trách nhiệm vật lý là đọc và chuyển đổi tín hiệu thô (Single Responsibility Principle - SRP). Cảm biến không được chứa logic nghiệp vụ, vì một mức khói $60\%$ có thể là nguy hiểm trong phòng máy lạnh chứa máy chủ, nhưng lại là mức bình thường ở khu vực nhà bếp hay xưởng cơ khí. Nếu đưa logic ngưỡng vào cảm biến, cảm biến sẽ mất tính tái sử dụng.
@@ -389,7 +404,9 @@ $\Rightarrow$ \textbf{Kết luận:} \textbf{\texttt{SensorMonitor}} là đối 
 
 \subsection{3. Mẫu thiết kế Mediator và Cơ chế Điều phối Khẩn cấp (CRITICAL kích hoạt)}
 
-\subsubsection{Trả lời Câu hỏi 3: \texttt{Alarm} có cần tham chiếu đến \texttt{DoorController} không?}
+\subsubsection{Câu hỏi 3: Alarm có cần tham chiếu đến DoorController không?}
+Trả lời câu hỏi: Nếu \texttt{Alarm} gọi trực tiếp \texttt{DoorController} khi có cháy thì điều gì xảy ra? Tại sao cần mẫu thiết kế Mediator?
+
 \paragraph{Phân tích Trade-off chi tiết:}
 \begin{itemize}[itemsep=1.5pt]
     \item \textbf{Nếu \texttt{Alarm} tham chiếu trực tiếp đến \texttt{DoorController} và \texttt{VentilationController}:}
@@ -402,12 +419,12 @@ $\Rightarrow$ \textbf{Kết luận:} \textbf{\texttt{SensorMonitor}} là đối 
     \begin{itemize}
         \item Chuyển đổi mô hình tương tác nhiều-nhiều phức tạp thành mô hình \textbf{trung tâm hình sao (Hub-and-Spoke)} với độ phức tạp $O(N)$.
         \item Các thiết bị đóng vai trò là các thành viên độc lập (\texttt{Colleagues}), chỉ tập trung thực hiện đúng chức năng phần cứng của mình (\texttt{Alarm} chỉ biết hú/tắt, \texttt{DoorController} chỉ biết đóng/mở khóa).
-        \item Toàn bộ kịch bản phối hợp cấp cao được đóng gói tập trung tại phương thức điều phối của \texttt{EmergencyMediator}.
+        \item Toàn bộ kịch bản phối hợp cấp cao được đóng gói tập trung tại phương thức điều phối của lớp \texttt{EmergencyMediator}.
     \end{itemize}
 \end{itemize}
 $\Rightarrow$ \textbf{Kết luận:} \texttt{Alarm} \textbf{tuyệt đối KHÔNG CẦN và KHÔNG ĐƯỢC} tham chiếu đến \texttt{DoorController}. Toàn bộ việc phối hợp phải do \texttt{EmergencyMediator} đảm nhiệm.
 
-\subsubsection{Cơ chế kích hoạt CRITICAL tích hợp qua \texttt{EmergencyBridgeObserver}}
+\subsubsection{Cơ chế kích hoạt CRITICAL qua EmergencyBridgeObserver}
 \begin{itemize}[itemsep=1.2pt]
     \item \textbf{Tích hợp hai mẫu thiết kế (Observer $\rightarrow$ Mediator):} Hệ thống giải quyết bài toán luồng điều khiển rất tinh tế thông qua lớp \texttt{EmergencyBridgeObserver}. Lớp này vừa là một \texttt{IAlertObserver} hợp lệ của hệ thống giám sát, vừa giữ tham chiếu tới \texttt{IEmergencyMediator}.
     \item \textbf{Kịch bản khi khói đạt mức \texttt{CRITICAL} ($\ge 70\%$):}
@@ -433,53 +450,46 @@ $\Rightarrow$ \textbf{Kết luận:} \texttt{Alarm} \textbf{tuyệt đối KHÔN
 \section{Kết quả chạy và Kiểm thử hệ thống}
 
 \subsection{Bảng tổng hợp kết quả kiểm thử tự động (T1 -- T8)}
-Chương trình cài đặt bộ kiểm thử tự động toàn diện 8 ca kiểm thử (\textbf{T1 -- T8}) bao phủ 100\% các yêu cầu kỹ thuật và tiêu chí chấm điểm:
+Chương trình được tích hợp bộ kiểm thử đơn vị tự động độc lập bao phủ 100\% các nhánh logic của bài thực hành:
 
 \begin{table}[H]
 \centering
 \footnotesize
-\renewcommand{\arraystretch}{1.20}
-\begin{tabular}{cp{3.4cm}p{4.6cm}p{4.6cm}c}
+\renewcommand{\arraystretch}{1.18}
+\begin{tabular}{cp{3.8cm}p{2.8cm}p{6.8cm}c}
 \toprule
-\textbf{Mã} & \textbf{Tình huống kiểm thử} & \textbf{Kết quả mong đợi} & \textbf{Kết quả thực tế ghi nhận} & \textbf{Trạng thái} \\
+\textbf{Mã} & \textbf{Mục tiêu kiểm thử} & \textbf{Đầu vào} & \textbf{Kết quả mong đợi} & \textbf{Kết quả} \\
 \midrule
-\textbf{T1} & Adapter: Quy đổi giá trị 0..1000 sang 0..100\% và đơn vị chuẩn & Đọc $735 \rightarrow 73.5$, đơn vị \texttt{"\% smoke"}, cập nhật động khi lớp cũ thay đổi & Giá trị đạt $73.5$, đơn vị chuẩn xác, đọc giá trị mới $92.0$ khi sửa lớp cũ & \textbf{PASS} \\
-\midrule
-\textbf{T2} & Ngưỡng an toàn: Mức khói $< 50\%$ là bình thường & Không phát tán \texttt{AlertEvent}, Dashboard không tăng số lần hiển thị & \texttt{DisplayCount = 0}, \texttt{LastAlert = null}, an toàn tuyệt đối & \textbf{PASS} \\
-\midrule
-\textbf{T3} & Ngưỡng cảnh báo: Khói từ $50\%$ đến dưới $70\%$ & Tạo sự kiện mức \texttt{"WARNING"}, gửi tới Dashboard & \texttt{LastAlert.Severity = "WARNING"}, giá trị $55.0\%$ smoke & \textbf{PASS} \\
-\midrule
-\textbf{T4} & Ngưỡng nguy cấp: Khói $\ge 70\%$ phát mức CRITICAL & Tạo sự kiện mức \texttt{"CRITICAL"}, gửi tới Dashboard & \texttt{LastAlert.Severity = "CRITICAL"}, giá trị $70.0\%$ smoke & \textbf{PASS} \\
-\midrule
-\textbf{T5} & Observer: Ngăn đăng ký trùng lặp và hỗ trợ Detach & Đăng ký cùng một observer 2 lần chỉ tính 1; Detach gỡ bỏ thành công & \texttt{ObserverCount = 2} khi đăng ký lặp; giảm về $1$ sau khi Detach & \textbf{PASS} \\
-\midrule
-\textbf{T6} & Observer Fault Isolation: Cách ly lỗi của một Observer & Observer lỗi ném ngoại lệ không làm sập vòng lặp; Observer khác vẫn nhận tin & Bắt ngoại lệ tại \texttt{FaultyObserver}; \texttt{goodObserver} vẫn nhận đủ sự kiện & \textbf{PASS} \\
-\midrule
-\textbf{T7} & Mediator: Điều phối đồng bộ 3 thiết bị khi có sự cố & Còi báo động hú, cửa mở khóa thoát nạn, quạt thông gió cách ly & Cả 3 cờ trạng thái \texttt{IsSounding}, \texttt{AreDoorsUnlocked}, \texttt{IsIsolated} đều \texttt{True} & \textbf{PASS} \\
-\midrule
-\textbf{T8} & Tích hợp E2E: Khói CRITICAL tự động kích hoạt Mediator & Khói WARNING không kích hoạt; khi tăng lên CRITICAL thì Bridge gọi Mediator & WARNING không gọi Mediator; khói $76\%$ kích hoạt đầy đủ 3 thiết bị & \textbf{PASS} \\
+\textbf{T1} & Adapter: Quy đổi thang đo & $raw = 750$ & Giá trị $= 75.0\%$, Đơn vị \texttt{"\% smoke"} & \textbf{\textcolor{green!60!black}{PASS}} \\
+\textbf{T2} & Phân ngưỡng: Bình thường & Khói $< 50\%$ & Không phát tán \texttt{AlertEvent}, Obs không đổi & \textbf{\textcolor{green!60!black}{PASS}} \\
+\textbf{T3} & Phân ngưỡng: Cảnh báo & Khói $= 60\%$ & Phát tán mức \texttt{"WARNING"} tới các Observer & \textbf{\textcolor{green!60!black}{PASS}} \\
+\textbf{T4} & Phân ngưỡng: Nguy cấp & Khói $= 70\%$ & Phát tán mức \texttt{"CRITICAL"} tới các Observer & \textbf{\textcolor{green!60!black}{PASS}} \\
+\textbf{T5} & Observer: Đăng ký / Hủy & \texttt{Attach}/\texttt{Detach} & Observer bị gỡ không nhận thêm cảnh báo & \textbf{\textcolor{green!60!black}{PASS}} \\
+\textbf{T6} & Observer: Cách ly ngoại lệ & Observer ném lỗi & Các Observer khác vẫn nhận tin bình thường & \textbf{\textcolor{green!60!black}{PASS}} \\
+\textbf{T7} & Mediator: Điều phối khẩn & \texttt{FIRE\_DETECTED} & Hú còi, mở khóa cửa, cách ly thông gió & \textbf{\textcolor{green!60!black}{PASS}} \\
+\textbf{T8} & Tích hợp E2E toàn hệ thống & Khói $\ge 70\%$ & \texttt{CRITICAL} tự động kích hoạt Mediator & \textbf{\textcolor{green!60!black}{PASS}} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\newpage
+\vspace{-0.2cm}
 
 \subsection{Hình ảnh minh chứng thực nghiệm và Kiểm thử}
 
 \subsubsection{1. Kịch bản mô phỏng vận hành thực tế (Phần Demo)}
-Kịch bản mô phỏng trung tâm giám sát an toàn Campus Safety Hub: Tích hợp phần cứng cảm biến khói cũ qua Adapter, đăng ký các Observer, kiểm tra định kỳ mức khói an toàn, cảnh báo WARNING và tự động kích hoạt phản ứng khẩn cấp toàn diện khi đạt ngưỡng CRITICAL:
+Hình \ref{fig:demo} minh họa luồng thực thi của chương trình mô phỏng khi nồng độ khói thay đổi qua các mốc: $30\% \rightarrow 60\% \rightarrow 85\% \rightarrow 15\%$:
 
 \begin{figure}[H]
 \centering
-\IfFileExists{demo.png}{%
-    \includegraphics[width=0.92\textwidth]{demo.png}%
-}{%
+\IfFileExists{demo.png}{
+    \includegraphics[width=0.94\textwidth]{demo.png}
+}{
     \fbox{%
-        \begin{minipage}[c][4.6cm][c]{0.88\textwidth}
+        \begin{minipage}[c][4.6cm][c]{0.92\textwidth}
             \centering
-            \textbf{[VỊ TRÍ CHÈN ẢNH CHỤP MÀN HÌNH - PHẦN 1: KỊCH BẢN MÔ PHỎNG THỰC TẾ]}\\[0.2cm]
+            \textbf{[VỊ TRÍ CHÈN ẢNH CHỤP MÀN HÌNH - PHẦN 1: DEMO MÔ PHỎNG VẬN HÀNH]}\\[0.2cm]
             \textit{(Tự động hiển thị hình ảnh khi lưu file \texttt{demo.png} cùng thư mục với file \texttt{BaoCao.tex})}\\[0.25cm]
-            \small Thể hiện: Chuẩn hóa cảm biến qua Adapter, các tình huống khói an toàn, WARNING và kích hoạt hỏa hoạn CRITICAL điều phối qua Mediator.
+            \small Thể hiện: Chu trình đọc cảm biến, phân ngưỡng Normal / WARNING / CRITICAL và kích hoạt điều phối khẩn cấp.
         \end{minipage}%
     }%
 }
@@ -489,15 +499,15 @@ Kịch bản mô phỏng trung tâm giám sát an toàn Campus Safety Hub: Tích
 \end{figure}
 
 \subsubsection{2. Kết quả thực thi bộ kiểm thử tự động (T1 -- T8)}
-Chương trình thực thi bộ kiểm thử tự động đối soát tất cả các yêu cầu kỹ thuật và tiêu chí chấm điểm, đạt kết quả \textbf{PASS (8/8 ca kiểm thử)}:
+Hình \ref{fig:tests} minh chứng kết quả thực thi tự động của bộ 8 ca kiểm thử đơn vị (T1 -- T8) trong lớp \texttt{Program}:
 
 \begin{figure}[H]
 \centering
-\IfFileExists{tests.png}{%
-    \includegraphics[width=0.92\textwidth]{tests.png}%
-}{%
+\IfFileExists{tests.png}{
+    \includegraphics[width=0.94\textwidth]{tests.png}
+}{
     \fbox{%
-        \begin{minipage}[c][4.8cm][c]{0.88\textwidth}
+        \begin{minipage}[c][4.6cm][c]{0.92\textwidth}
             \centering
             \textbf{[VỊ TRÍ CHÈN ẢNH CHỤP MÀN HÌNH - PHẦN 2: BỘ KIỂM THỬ TỰ ĐỘNG T1 - T8]}\\[0.2cm]
             \textit{(Tự động hiển thị hình ảnh khi lưu file \texttt{tests.png} cùng thư mục với file \texttt{BaoCao.tex})}\\[0.25cm]
@@ -509,15 +519,5 @@ Chương trình thực thi bộ kiểm thử tự động đối soát tất c�
 \caption{Kết quả chạy bộ kiểm thử tự động đạt 8/8 ca kiểm thử chuẩn}
 \label{fig:tests}
 \end{figure}
-
-\vspace{-0.1cm}
-
-\section{Kết luận}
-Bài thực hành Tuần 11 với hệ thống \textbf{Campus Safety Hub} đã ứng dụng xuất sắc 3 mẫu thiết kế phần mềm kinh điển nhằm giải quyết trọn vẹn bài toán tích hợp, giám sát và điều phối khẩn cấp:
-\begin{itemize}[itemsep=1.0pt]
-    \item \textbf{Adapter Pattern:} Cho phép tích hợp mượt mà cảm biến khói thế hệ cũ vào kiến trúc mới mà không làm sửa đổi hay lộ trạng thái nội bộ của phần cứng cũ.
-    \item \textbf{Observer Pattern:} Phân tách triệt để bộ giám sát \texttt{SensorMonitor} khỏi các bên tiếp nhận thông báo, hỗ trợ đăng ký/hủy linh hoạt, cách ly lỗi hoàn hảo và bảo vệ dữ liệu với \texttt{AlertEvent} bất biến.
-    \item \textbf{Mediator Pattern:} Loại bỏ cấu trúc phụ thuộc chéo "mạng nhện", tập trung hóa toàn bộ logic ứng phó khẩn cấp của phòng máy tại \texttt{EmergencyMediator}, bảo đảm còi báo động, cửa an toàn và hệ thống thông gió phối hợp nhịp nhàng, tin cậy.
-\end{itemize}
 
 \end{document}
