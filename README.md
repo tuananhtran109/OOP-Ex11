@@ -197,13 +197,4 @@ Chương trình sẽ tự động thực thi 2 phần:
 
 ---
 
-## 6. Hướng dẫn Đưa Ảnh Chụp Màn hình vào Báo cáo LaTeX
 
-Báo cáo LaTeX `BaoCao.tex` đã được cấu hình với cơ chế dự phòng linh hoạt (`\IfFileExists`):
-- Để thêm ảnh chụp màn hình demo, bạn chụp cửa sổ console chạy phần 1 và lưu vào thư mục gốc `D:\OOp\Week11` với tên: `demo.png`.
-- Để thêm ảnh chụp màn hình kiểm thử, bạn chụp cửa sổ console chạy phần 2 và lưu vào thư mục gốc `D:\OOp\Week11` với tên: `tests.png`.
-- Sau đó biên dịch lại file PDF:
-  ```bash
-  xelatex -interaction=nonstopmode BaoCao.tex
-  ```
-- Nếu chưa có ảnh, file LaTeX vẫn biên dịch ra PDF hoàn chỉnh với các khung hộp placeholder ghi chú rõ ràng mà không phát sinh lỗi.
