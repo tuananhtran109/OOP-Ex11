@@ -25,13 +25,7 @@ public static class Program
         Console.OutputEncoding = System.Text.Encoding.UTF8;
 
         Console.ForegroundColor = ConsoleColor.Cyan;
-        Console.WriteLine("================================================================================");
-        Console.WriteLine("            TRƯỜNG ĐẠI HỌC BÁCH KHOA HÀ NỘI - BÀI THỰC HÀNH OOP TUẦN 11         ");
-        Console.WriteLine("                       CHỦ ĐỀ: CAMPUS SAFETY HUB                                ");
-        Console.WriteLine("         ÁP DỤNG CÁC DESIGN PATTERNS: ADAPTER - OBSERVER - MEDIATOR             ");
-        Console.WriteLine("================================================================================");
-        Console.WriteLine("MSSV: 202418834 | Họ tên: Trần Tuấn Anh");
-        Console.WriteLine("================================================================================\n");
+       
         Console.ResetColor();
 
         // 1. Chạy kịch bản mô phỏng trực quan
@@ -126,9 +120,9 @@ public static class Program
         Console.WriteLine($"   - Cửa thoát hiểm đã mở khóa: {doorController.AreDoorsUnlocked}");
         Console.WriteLine($"   - Hệ thống thông gió đã cách ly và hút khói: {ventilationController.IsIsolated}\n");
 
-        // Bước 7: Khôi phục hiện trường an toàn
+        // Tình huống 4: Khôi phục hiện trường an toàn sau sự cố
         Console.ForegroundColor = ConsoleColor.Cyan;
-        Console.WriteLine(">>> BƯỚC 7: Xử lý xong sự cố, khôi phục hệ thống về bình thường <<<");
+        Console.WriteLine(">>> TÌNH HUỐNG 4: Xử lý xong sự cố, khôi phục hệ thống về bình thường <<<");
         Console.ResetColor();
         mediator.ResetNormal();
         legacyDetector.SetSmokeLevel(200); // Khói về 20%
