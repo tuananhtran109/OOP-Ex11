@@ -42,12 +42,7 @@ Kho lưu trữ mã nguồn đầy đủ của bài thực hành trên Github:
 \begin{center}
     \url{https://github.com/tuananhtran109/OOP-Ex11}
 \end{center}
-\vspace{-0.2cm}
-Mọi tệp mã nguồn (\texttt{.cs}) trong dự án đều bắt đầu bằng header nhận diện tác giả theo đúng quy định:
-\begin{center}
-\vspace{-0.15cm}
-\fbox{\small\texttt{/****************/ \ // MSSV:202418834 \ // Họ tên: Trần Tuấn Anh \ /****************/}}
-\end{center}
+
 
 \vspace{-0.35cm}
 
@@ -477,12 +472,12 @@ Chương trình được tích hợp bộ kiểm thử đơn vị tự động �
 \subsection{Hình ảnh minh chứng thực nghiệm và Kiểm thử}
 
 \subsubsection{1. Kịch bản mô phỏng vận hành thực tế (Phần Demo)}
-Hình \ref{fig:demo} minh họa luồng thực thi của chương trình mô phỏng khi nồng độ khói thay đổi qua các mốc: $30\% \rightarrow 60\% \rightarrow 85\% \rightarrow 15\%$:
+Hình \ref{fig:demo} minh họa luồng thực thi của chương trình mô phỏng khi nồng độ khói thay đổi qua 4 tình huống ($32\% \rightarrow 62\% \rightarrow 84.5\% \rightarrow 20\%$):
 
 \begin{figure}[H]
 \centering
 \IfFileExists{demo.png}{
-    \includegraphics[width=0.94\textwidth]{demo.png}
+    \includegraphics[width=0.92\textwidth, height=11.0cm, keepaspectratio]{demo.png}
 }{
     \fbox{%
         \begin{minipage}[c][4.6cm][c]{0.92\textwidth}
@@ -498,13 +493,15 @@ Hình \ref{fig:demo} minh họa luồng thực thi của chương trình mô ph�
 \label{fig:demo}
 \end{figure}
 
+\newpage
+
 \subsubsection{2. Kết quả thực thi bộ kiểm thử tự động (T1 -- T8)}
 Hình \ref{fig:tests} minh chứng kết quả thực thi tự động của bộ 8 ca kiểm thử đơn vị (T1 -- T8) trong lớp \texttt{Program}:
 
 \begin{figure}[H]
 \centering
 \IfFileExists{tests.png}{
-    \includegraphics[width=0.94\textwidth]{tests.png}
+    \includegraphics[width=0.92\textwidth, height=15.0cm, keepaspectratio]{tests.png}
 }{
     \fbox{%
         \begin{minipage}[c][4.6cm][c]{0.92\textwidth}
